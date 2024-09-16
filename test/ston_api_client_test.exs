@@ -29,9 +29,7 @@ defmodule StonApiClientTest do
     @response_mock %HTTPoison.Response{status_code: 200, body: Jason.encode!(@assets)}
 
     test_with_mock "get assets", HTTPoison, get: fn _url -> {:ok, @response_mock} end do
-      {:ok, assets_list} = StonApiClient.assets()
-      asset_struct = List.first(assets_list)
-
+      assert {:ok, [asset_struct | _]} = StonApiClient.assets()
       assert Map.from_struct(asset_struct) == @assets |> Map.fetch!(:asset_list) |> List.first()
     end
   end

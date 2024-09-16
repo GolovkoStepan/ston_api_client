@@ -11,13 +11,11 @@ defmodule StonApiClient do
   Getting information about all assets
   """
   def assets do
-    with {:ok, data} <- make_request("#{@base_url}/assets") |> parse_body,
-         {:ok, raw_assets_list} <- Map.fetch(data, "asset_list") do
+    with {:ok, data} <- "#{@base_url}/assets" |> make_request() |> parse_body(),
+         {:ok, assets_list} <- Map.fetch(data, :asset_list) do
       {
         :ok,
-        raw_assets_list
-        |> Enum.map(&to_atom_keys/1)
-        |> Enum.map(&struct(Asset, &1))
+        Enum.map(assets_list, &struct(Asset, &1))
       }
     end
   end
@@ -36,7 +34,7 @@ defmodule StonApiClient do
   end
 
   defp parse_body({:ok, body}) do
-    case Jason.decode(body) do
+    case Jason.decode(body, keys: :atoms!) do
       {:ok, data} ->
         {:ok, data}
 
@@ -46,8 +44,4 @@ defmodule StonApiClient do
   end
 
   defp parse_body({:error, reason: reason}), do: {:error, reason: reason}
-
-  def to_atom_keys(data) do
-    for {key, val} <- data, into: %{}, do: {String.to_atom(key), val}
-  end
 end
